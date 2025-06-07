@@ -1,7 +1,3 @@
 let
   pkgs = import <nixpkgs> {};
-in pkgs.mkShell {
-  packages = [
-    pkgs.python3Packages.pyxdg
-  ];
-}
+in pkgs.python3Packages.callPackage ./default.nix {}
