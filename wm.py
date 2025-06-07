@@ -38,6 +38,17 @@ def get_icon(wm_class: str) -> str:
         print("not found", file=sys.stderr)
         return ""
 
+def print_rofi_entry(id:str, wm_class:str, title:str) -> None:
+    print("".join([
+        id,
+        "\0",
+        "\x1f".join([
+            "icon", get_icon(wm_class),
+            "display", f"{wm_class:12} {title}",
+            "meta", f"{wm_class} {title}",
+        ]),
+    ]))
+
 import subprocess
 
 # Output of `wmctrl -l`:
@@ -55,15 +66,7 @@ for line in subprocess.check_output(["wmctrl", "-l"]).decode("utf-8").splitlines
     if wm_class == "firefox":
         continue
 
-    print("".join([
-        window_id,
-        "\0",
-        "\x1f".join([
-            "icon", get_icon(wm_class),
-            "display", f"{wm_class:12} {title}",
-            "meta", f"{wm_class} {title}",
-        ]),
-    ]))
+    print_rofi_entry(window_id, wm_class, title)
 
 # Output of `brotab list`:
 # brotab_id   title
@@ -73,13 +76,4 @@ for line in subprocess.check_output(["brotab", "list"]).decode("utf-8").splitlin
     line_split = line.split(maxsplit=1)
     brotab_id = line_split[0]
     title = line_split[1]
-
-    print("".join([
-        brotab_id,
-        "\0",
-        "\x1f".join([
-            "icon", get_icon("firefox"),
-            "display", f"{"firefox":12} {title}",
-            "meta", f"firefox {title}",
-        ]),
-    ]))
+    print_rofi_entry(brotab_id, "firefox", title)
