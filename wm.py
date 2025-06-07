@@ -65,7 +65,9 @@ def list() -> None:
         # Output of `xprop -id xxx WM_CLASS`:
         # WM_CLASS(STRING) = "Name", "WC_CLASS"）
         wm_class = subprocess.check_output(["xprop", "-id", window_id, "WM_CLASS"]).decode("utf-8").split('"')[3]
-        if wm_class == "firefox":
+        if (wm_class == "firefox" or
+            wm_class == "kitty"
+        ):
             continue
 
         print_rofi_entry("w."+window_id, wm_class, title)
@@ -82,6 +84,15 @@ def list() -> None:
         title = line_split[1]
         print_rofi_entry("f."+brotab_id, "firefox", title)
 
+    #################
+    # List kitty tabs
+    import glob, json
+    for instance in glob.glob("/tmp/mykitty-*"):
+        instance_id = instance.removeprefix("/tmp/mykitty-")
+        for window in json.loads(subprocess.check_output(["kitten", "@", "ls", "--to", f"unix:{instance}"])):
+            for tab in window["tabs"]:
+                print_rofi_entry(f"k.{instance_id}.{window['id']}.{tab['id']}", "kitty", tab['title'])
+
 def select(id:str) -> None:
     if id.startswith("w."):
         window_id = id[2:]
@@ -89,6 +100,13 @@ def select(id:str) -> None:
     elif id.startswith("f."):
         brotab_id = id[2:]
         subprocess.run(["brotab", "activate", "--focused", brotab_id])
+    elif id.startswith("k."):
+        id_split = id.split(".")
+        instance_id = id_split[1]
+        window_id   = id_split[2]
+        tab_id      = id_split[3]
+        subprocess.run(["kitten", "@", "focus-window", "-m", f"id:{window_id}", "--to", f"unix:/tmp/mykitty-{instance_id}"])
+        subprocess.run(["kitten", "@", "focus-tab",    "-m", f"id:{tab_id}",    "--to", f"unix:/tmp/mykitty-{instance_id}"])
 
 if len(sys.argv) == 1:
     list()
