@@ -80,6 +80,9 @@ def list() -> None:
     # ...
     for line in subprocess.check_output(["brotab", "list"]).decode("utf-8").splitlines():
         line_split = line.split(maxsplit=1)
+        if len(line_split) == 0:
+            # firefox is not running, thus brotab print an empty line
+            break
         brotab_id = line_split[0]
         title = line_split[1]
         print_rofi_entry("f."+brotab_id, "firefox", title)
